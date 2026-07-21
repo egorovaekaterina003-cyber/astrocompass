@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Astro Compass — Анастасия Золотаревская</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Raleway:wght@200;300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -25,13 +25,13 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;overflow:hidden;}
 .hero-photo{position:absolute;inset:0;z-index:0;}
-.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;filter:brightness(0.75) saturate(0.85);}
 .hero-overlay{position:absolute;inset:0;z-index:1;
-  background:linear-gradient(to bottom,rgba(13,11,18,0.15) 0%,rgba(13,11,18,0.05) 25%,rgba(13,11,18,0.6) 58%,rgba(13,11,18,0.97) 82%,rgba(13,11,18,1) 100%);}
-.hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;}
-.hero-title{font-family:'Cormorant Garamond',serif;font-size:62px;font-weight:300;line-height:0.95;color:#fff;margin-bottom:10px;}
+  background:linear-gradient(to bottom,rgba(15,5,35,0.7) 0%,rgba(15,5,35,0.5) 25%,rgba(15,5,35,0.88) 58%,rgba(8,3,20,0.99) 82%,rgba(8,3,20,1) 100%);}
+.hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;background:radial-gradient(ellipse 80% 50% at 0% 100%,rgba(70,30,120,0.5) 0%,transparent 70%);}
+.hero-title{font-family:'EB Garamond',serif;font-size:82px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:12px;letter-spacing:0.02em;}
 .hero-title em{font-style:italic;color:var(--purple-light);}
-.hero-author{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:300;font-style:italic;color:var(--text2);margin-bottom:40px;}
+.hero-author{font-family:'EB Garamond',serif;font-size:18px;font-weight:300;font-style:italic;color:rgba(200,180,230,0.85);margin-bottom:40px;letter-spacing:0.15em;}
 .hero-scroll{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);text-decoration:none;}
 .hero-scroll svg{width:13px;height:13px;}
 
@@ -41,20 +41,20 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .benefit-cards{display:flex;flex-direction:column;gap:16px;}
 .benefit-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px 20px;}
 .benefit-icon{font-size:24px;margin-bottom:12px;}
-.benefit-card h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:8px;}
+.benefit-card h3{font-family:'EB Garamond',serif;font-size:24px;font-weight:700;margin-bottom:8px;}
 .benefit-card p{font-size:14px;line-height:1.7;color:var(--text3);}
 .how-list{display:flex;flex-direction:column;}
 .how-item{display:flex;gap:20px;align-items:flex-start;padding:20px 0;border-bottom:1px solid var(--border);}
 .how-item:last-child{border-bottom:none;}
-.how-num{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--purple);opacity:0.5;line-height:1;min-width:36px;}
-.how-item h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;margin-bottom:4px;}
+.how-num{font-family:'EB Garamond',serif;font-size:40px;font-weight:300;color:var(--purple);opacity:0.5;line-height:1;min-width:36px;}
+.how-item h3{font-family:'EB Garamond',serif;font-size:22px;font-weight:700;margin-bottom:4px;}
 .how-item p{font-size:13px;color:var(--text3);line-height:1.6;}
 
 /* FORM */
 .form-section{padding:0 24px 60px;position:relative;z-index:2;}
 .form-card{background:var(--bg2);border:1px solid var(--purple-border);border-radius:var(--radius);padding:28px 20px;position:relative;overflow:hidden;}
 .form-card::after{content:'';position:absolute;bottom:-80px;left:-80px;width:240px;height:240px;background:radial-gradient(circle,rgba(45,90,69,0.1) 0%,transparent 70%);pointer-events:none;z-index:0;}
-.form-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;line-height:1.2;margin-bottom:6px;}
+.form-title{font-family:'EB Garamond',serif;font-size:34px;font-weight:700;line-height:1.2;margin-bottom:6px;}
 .form-subtitle{font-size:13px;color:var(--text3);margin-bottom:28px;line-height:1.5;}
 .field{margin-bottom:16px;}
 .field label{display:block;font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
@@ -69,18 +69,18 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .city-suggestion{padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text2);}
 .city-suggestion:last-child{border-bottom:none;}
 .city-suggestion:hover{background:var(--purple-dim);color:var(--text);}
-.submit-btn{width:100%;margin-top:8px;padding:17px;background:linear-gradient(135deg,var(--purple),#3D2260);color:#fff;border:none;border-radius:var(--radius);font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;letter-spacing:0.03em;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;z-index:2;}
+.submit-btn{width:100%;margin-top:8px;padding:17px;background:linear-gradient(135deg,var(--purple),#3D2260);color:#fff;border:none;border-radius:var(--radius);font-family:'EB Garamond',serif;font-size:20px;font-weight:400;letter-spacing:0.03em;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:10px;position:relative;z-index:2;}
 .submit-btn:active{opacity:0.85;}
 
 /* CHART */
 .chart-section{padding:0 24px 60px;position:relative;z-index:2;display:none;}
 .chart-section.visible{display:block;}
-.chart-header{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:300;line-height:1.2;margin-bottom:6px;}
+.chart-header{font-family:'EB Garamond',serif;font-size:36px;font-weight:700;line-height:1.2;margin-bottom:6px;}
 .chart-header em{font-style:italic;color:var(--purple-light);}
 .chart-sub{font-size:13px;color:var(--text3);margin-bottom:28px;}
 .chart-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;}
 #natal-chart{width:100%;max-width:360px;display:block;margin:0 auto;}
-.table-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:16px;padding:0 20px;}
+.table-title{font-family:'EB Garamond',serif;font-size:20px;font-weight:400;margin-bottom:16px;padding:0 20px;}
 .planets-table{width:100%;border-collapse:collapse;font-size:13px;}
 .planets-table th{text-align:left;padding:10px 12px;font-size:10px;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border);}
 .planets-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
@@ -191,7 +191,7 @@ footer a{color:var(--purple-light);text-decoration:none;}
       </table>
     </div>
     <div class="aspects-wrap">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;margin-bottom:12px;">Аспекты</div>
+      <div style="font-family:'EB Garamond',serif;font-size:20px;font-weight:400;margin-bottom:12px;">Аспекты</div>
       <div id="aspects-list"></div>
     </div>
   </div>
