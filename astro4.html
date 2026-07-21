@@ -341,9 +341,6 @@ window.buildChart=async function(){
 
     const resp=await fetch('https://script.google.com/macros/s/AKfycbwNK-rOUMZyxx6DsvdDtl7DLYEok0xWLlxQ5a46D12TJt1W4GxVENccEwg8N-QaKS0O/exec',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
       body:JSON.stringify(payload)
     });
 
