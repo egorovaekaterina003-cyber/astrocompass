@@ -332,7 +332,7 @@ window.buildChart=async function(){
       config:{observation_point:'topocentric',ayanamsha:'tropical'}
     };
 
-    const proxyUrl='https://corsproxy.io/?url='+encodeURIComponent('https://json.freeastrologyapi.com/western-chart-data');
+    const proxyUrl='https://cors-anywhere.herokuapp.com/https://json.freeastrologyapi.com/western-chart-data';
     const resp=await fetch(proxyUrl,{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':ASTRO_API_KEY},
