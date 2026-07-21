@@ -25,9 +25,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;overflow:hidden;}
 .hero-photo{position:absolute;inset:0;z-index:0;}
-.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;filter:brightness(0.75) saturate(0.85);}
-.hero-overlay{position:absolute;inset:0;z-index:1;
-  background:linear-gradient(to bottom,rgba(15,5,35,0.7) 0%,rgba(15,5,35,0.5) 25%,rgba(15,5,35,0.88) 58%,rgba(8,3,20,0.99) 82%,rgba(8,3,20,1) 100%);}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;}
+.hero-overlay{position:absolute;inset:0;z-index:1;}
+.hero-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 40%,transparent 30%,rgba(8,3,20,0.7) 60%,rgba(8,3,20,0.97) 80%,rgba(8,3,20,1) 100%);}
+.hero-overlay::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,3,20,0.2) 0%,transparent 30%,transparent 50%,rgba(8,3,20,0.95) 80%,rgba(8,3,20,1) 100%);}
 .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;background:radial-gradient(ellipse 80% 50% at 0% 100%,rgba(70,30,120,0.5) 0%,transparent 70%);}
 .hero-title{font-family:'EB Garamond',serif;font-size:82px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:12px;letter-spacing:0.02em;}
 .hero-title em{font-style:italic;color:var(--purple-light);}
@@ -338,11 +339,10 @@ window.buildChart=async function(){
       }
     };
 
-    const resp=await fetch('https://json.freeastrologyapi.com/western-chart-data',{
+    const resp=await fetch('https://script.google.com/macros/s/AKfycbwNK-rOUMZyxx6DsvdDtl7DLYEok0xWLlxQ5a46D12TJt1W4GxVENccEwg8N-QaKS0O/exec',{
       method:'POST',
       headers:{
-        'Content-Type':'application/json',
-        'x-api-key':ASTRO_API_KEY
+        'Content-Type':'application/json'
       },
       body:JSON.stringify(payload)
     });
