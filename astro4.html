@@ -345,45 +345,44 @@ window.buildChart=async function(){
     const ut=hr+mn/60-tz; // convert to UT
 
     const swe=await initSwe();
-    const jd=swe.julday(y,m,d,ut);
+    const jd=swe.julday(y,m,d,ut); // used for planet positions (calc_ut works correctly)
 
-    // Planets: SE_SUN=0,SE_MOON=1,SE_MERCURY=2,SE_VENUS=3,SE_MARS=4,SE_JUPITER=5,SE_SATURN=6,SE_URANUS=7,SE_NEPTUNE=8,SE_PLUTO=9
-    const PLANETS=[0,1,2,3,4,5,6,7,8,9];
-    const FLAG=swe.SEFLG_SWIEPH||2; // use Swiss Ephemeris
+    // Compute our own JD for houses (library's julday has ~8h internal offset affecting ARMC)
+    function myJulday(yr,mo,dy,utime){
+      let y2=yr,m2=mo;
+      if(m2<=2){y2--;m2+=12;}
+      const A=Math.floor(y2/100),B=2-A+Math.floor(A/4);
+      return Math.floor(365.25*(y2+4716))+Math.floor(30.6001*(m2+1))+dy+B-1524.5+utime/24;
+    }
+    const jdHouses=myJulday(y,m,d,ut);
 
-    const lons=PLANETS.map(p=>{
+    // Planets
+    const PLANETS=[0,1,2,3,4,5,6,7,8,9,11,12]; // +11=Chiron, +12=mean node
+    const FLAG=swe.SEFLG_SWIEPH||2;
+    const allPos=PLANETS.map(p=>{
       const pos=swe.calc_ut(jd,p,FLAG);
-      // calc_ut returns array: [longitude, latitude, distance, speed_lon, ...]
-      const lon=N360(pos[0]);
-      const retro=pos[3]<0; // negative speed = retrograde
-      return{lon,retro};
+      return{lon:N360(pos[0]),retro:pos[3]<0,lat2:pos[1]};
     });
+    const lons=allPos.slice(0,10);
+    const chironPos=allPos[10]; // Chiron
+    const nodePos=allPos[11];   // Mean North Node
 
-    // Houses (Placidus = 'P')
-    // swe.houses returns {ascmc: {"0":cusp1,"1":cusp2,...,"12":cusp12,"13":asc,"14":mc,...}}
-    // According to swisseph-wasm API: houses() returns object with cusps and ascmc
-    // Let's call it differently - use house_ex or check the actual return
-    // swisseph-wasm houses() returns:
-    // { cusps: {"0":0,"1":cusp1,...,"12":cusp12}, ascmc: {"0":ASC_raw,"1":MC_raw,...} }
-    // BUT ASC and house cusps need quadrant correction when LST in [90,270]
-    const hResult=swe.houses(jd,lat,lng,'P');
+    // Lilith (Black Moon) = planet 13 in swisseph
+    let lilitPos={lon:0,retro:false};
+    try{const lp=swe.calc_ut(jd,13,FLAG);lilitPos={lon:N360(lp[0]),retro:lp[3]<0};}catch(e){}
+
+    // Houses using our correct JD
+    const hResult=swe.houses(jdHouses,lat,lng,'P');
     const hcusps=hResult.cusps||{};
     const ascmc=hResult.ascmc||{};
+    // Library's ARMC (ascmc[2]) should now match our LST
     const ARMC=ascmc[2]||ascmc['2']||0;
-    console.log('ARMC=',ARMC,'cusps=',JSON.stringify(hcusps),'ascmc=',JSON.stringify(ascmc));
-    // ASC from library
-    const ascRaw=ascmc[0]||ascmc['0']||0;
-    const mcRaw=ascmc[1]||ascmc['1']||0;
-    // Quadrant fix: when ARMC in [90,270], raw values are 180° off
-    const needsFix=(ARMC>90&&ARMC<270);
     const cusps={};
     for(let i=1;i<=12;i++){
-      const raw=parseFloat(hcusps[String(i)]||hcusps[i]||0);
-      cusps[i]=N360(needsFix?raw+180:raw);
+      cusps[i]=N360(parseFloat(hcusps[String(i)]||hcusps[i]||0));
     }
-    const asc=N360(needsFix?ascRaw+180:ascRaw);
-    const mc=N360(ARMC>180?mcRaw+180:mcRaw);
-    console.log('ASC=',asc,'MC=',mc,'cusp1=',cusps[1],'cusp10=',cusps[10]);
+    const asc=N360(parseFloat(ascmc[0]||ascmc['0']||0));
+    const mc=N360(parseFloat(ascmc[1]||ascmc['1']||0));
 
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
@@ -539,6 +538,34 @@ function fillTable(lons,cusps,asc){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td class="planet-sym">${pd.sym}</td>`
       +`<td class="planet-name">${pd.name}${p.retro?' <span style="color:#7B4FA6;font-size:10px;">℞</span>':''}</td>`
+      +`<td><span class="sign-badge">${SIGNS_SYM[signIdx]} ${SIGNS[signIdx]}</span></td>`
+      +`<td><span class="house-badge">${house} дом</span></td>`
+      +`<td style="color:var(--text3);font-size:12px;">${deg}°</td>`;
+    tbody.appendChild(tr);
+  });
+
+  // Extra points: ASC, DSC, MC, IC, North Node, South Node, Lilith, Chiron
+  const extras=[
+    {sym:'AC',name:'Асцендент',lon:asc,retro:false},
+    {sym:'DC',name:'Десцендент',lon:N360(asc+180),retro:false},
+    {sym:'MC',name:'МС (Середина неба)',lon:mc,retro:false},
+    {sym:'IC',name:'IC (Основание неба)',lon:N360(mc+180),retro:false},
+  ];
+  if(nodePos){
+    extras.push({sym:'☊',name:'Сев. узел',lon:nodePos.lon,retro:nodePos.retro});
+    extras.push({sym:'☋',name:'Юж. узел',lon:N360(nodePos.lon+180),retro:false});
+  }
+  if(lilitPos) extras.push({sym:'⚸',name:'Лилит',lon:lilitPos.lon,retro:false});
+  if(chironPos) extras.push({sym:'⚷',name:'Хирон',lon:chironPos.lon,retro:chironPos.retro});
+
+  extras.forEach(p=>{
+    const signIdx=Math.floor(norm(p.lon)/30)%12;
+    const deg=Math.floor(norm(p.lon)%30);
+    const house=getHouse(p.lon,cusps);
+    const tr=document.createElement('tr');
+    tr.style.opacity='0.75';
+    tr.innerHTML=`<td class="planet-sym" style="font-size:11px;">${p.sym}</td>`
+      +`<td class="planet-name">${p.name}</td>`
       +`<td><span class="sign-badge">${SIGNS_SYM[signIdx]} ${SIGNS[signIdx]}</span></td>`
       +`<td><span class="house-badge">${house} дом</span></td>`
       +`<td style="color:var(--text3);font-size:12px;">${deg}°</td>`;
