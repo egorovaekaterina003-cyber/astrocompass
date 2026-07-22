@@ -377,6 +377,7 @@ window.buildChart=async function(){
       const eps2=23.439291-0.013004*T2;
       const GMST2=((280.46061837+360.98564736629*(jd2-2451545)+0.000387933*T2*T2)%360+360)%360;
       const LST2=((GMST2+lng2)%360+360)%360;
+      console.log('jd2=',jd2,'GMST2=',GMST2,'LST2=',LST2,'lng2=',lng2);
       const epsr2=Math.PI/180*eps2, latr2=Math.PI/180*lat2, LSTr2=Math.PI/180*LST2;
       // MC with quadrant fix
       const mcRaw2=180/Math.PI*Math.atan2(Math.tan(LSTr2),Math.cos(epsr2));
