@@ -360,19 +360,46 @@ window.buildChart=async function(){
     });
 
     // Houses (Placidus = 'P')
-    const houses=swe.houses(jd,lat,lng,'P');
-    // Log full structure to understand API
-    console.log('houses keys:', Object.keys(houses));
-    console.log('houses.house:', JSON.stringify(houses.house));
-    console.log('houses.ascmc:', JSON.stringify(houses.ascmc));
-    console.log('houses[0]:', houses[0]);
-    console.log('houses[1]:', houses[1]);
-    const cusps={};
-    const houseArr = houses.house || houses.cusps || (Array.isArray(houses)?houses:[]);
-    const ascmc = houses.ascmc || [];
-    for(let i=1;i<=12;i++) cusps[i]=N360(houseArr[i]||0);
-    const asc=N360(ascmc[0]||0);
-    const mc=N360(ascmc[1]||0);
+    // swe.houses returns {ascmc: {"0":cusp1,"1":cusp2,...,"12":cusp12,"13":asc,"14":mc,...}}
+    // According to swisseph-wasm API: houses() returns object with cusps and ascmc
+    // Let's call it differently - use house_ex or check the actual return
+    let cusps={}, asc=0, mc=0;
+    try{
+      const h=swe.houses(jd,lat,lng,'P');
+      console.log('h full:', JSON.stringify(h));
+      // ascmc object has numeric keys - cusps 1-12, then asc=index after
+      const am=h.ascmc||{};
+      const keys=Object.keys(am).map(Number).sort((a,b)=>a-b);
+      console.log('keys:', keys, 'values:', keys.map(k=>am[k]));
+      // In swisseph, houses() typically: cusps[0..12] where [0] unused, [1..12] are house cusps
+      // ascmc[0]=ASC, ascmc[1]=MC, ascmc[2]=ARMC, ascmc[3]=Vertex...
+      // But here house is undefined, so ascmc contains BOTH cusps and angles
+      // Keys 0-8 seem to be 9 values - likely ascmc array (ASC,MC,ARMC,Vertex,EqAsc,CoAsc1,CoAsc2,PolarAsc,unused)
+      // The actual house cusps must be elsewhere
+      // Try houses_ex
+      const h2=swe.houses_ex?swe.houses_ex(jd,0,lat,lng,'P'):null;
+      console.log('h2:', JSON.stringify(h2));
+      if(h2&&h2.house){
+        for(let i=1;i<=12;i++) cusps[i]=N360(h2.house[i]||0);
+        asc=N360(h2.ascmc?h2.ascmc[0]:0);
+        mc=N360(h2.ascmc?h2.ascmc[1]:0);
+      } else {
+        // ascmc[0..8] = ASC,MC,ARMC,Vertex,EqAsc,...
+        // We need cusps - try different method name
+        const h3=swe.swe_houses?swe.swe_houses(jd,lat,lng,'P'.charCodeAt(0)):null;
+        console.log('h3:', JSON.stringify(h3));
+        if(h3){
+          for(let i=1;i<=12;i++) cusps[i]=N360((h3.cusps||h3.house||[])[i]||0);
+          const am3=h3.ascmc||[];
+          asc=N360(am3[0]||0); mc=N360(am3[1]||0);
+        } else {
+          // fallback: use ascmc as angles, compute houses manually
+          asc=N360(am[0]||0); mc=N360(am[1]||0);
+          for(let i=1;i<=12;i++) cusps[i]=N360(asc+(i-1)*30);
+        }
+      }
+    }catch(he){console.error('houses error:',he);}
+    console.log('Final ASC:', asc, 'MC:', mc, 'cusp1:', cusps[1]);
 
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
