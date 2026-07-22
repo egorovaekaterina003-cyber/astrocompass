@@ -200,7 +200,7 @@ footer a{color:var(--purple-light);text-decoration:none;}
 
 <footer><p>© 2026 Astro Compass · Анастасия Золотаревская<br><a href="mailto:astrocompass@mail.ru">astrocompass@mail.ru</a></p></footer>
 
-<script>
+<script type="module">
 const ASTRO_API_KEY = '1t8Q3ldCZR5cjWAdOVdaa94mhovIL1gU6fB7Y1cr';
 
 /* STARS */
@@ -302,118 +302,23 @@ window.onCityInput=function(el){
 };
 document.addEventListener('click',e=>{if(!e.target.closest('.field-wrap'))document.getElementById('city-suggestions').style.display='none';});
 
-/* ── EPHEMERIS: Moshier ── */
-function D2R(d){return d*Math.PI/180;}
-function R2D(r){return r*180/Math.PI;}
+/* ── SWISS EPHEMERIS WASM ── */
+let _swe = null;
+let _sweReady = false;
+
+async function initSwe(){
+  if(_sweReady) return _swe;
+  const {default: SwissEph} = await import('https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js');
+  _swe = new SwissEph();
+  await _swe.initSwissEph();
+  _sweReady = true;
+  return _swe;
+}
+
 function N360(x){return((x%360)+360)%360;}
 
-function julday(y,mo,d,ut){
-  if(mo<=2){y--;mo+=12;}
-  const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
-  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(mo+1))+d+B-1524.5+ut/24;
-}
-
-function moshier(jd){
-  const T=(jd-2451545.0)/36525;
-  const T2=T*T,T3=T2*T,T4=T3*T;
-  const eps=23.439291111-0.013004167*T-0.000000164*T2+0.000000504*T3;
-
-  const L0=N360(280.46646+36000.76983*T+0.0003032*T2);
-  const M=N360(357.52911+35999.05029*T-0.0001537*T2);
-  const Mr=D2R(M);
-  const C=(1.914602-0.004817*T-0.000014*T2)*Math.sin(Mr)+(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
-  const sun=N360(L0+C);
-
-  const Lm=N360(218.3165+481267.8813*T-0.001579*T2+T3/538841);
-  const Dm=N360(297.8502+445267.1115*T-0.001630*T2+T3/545868);
-  const Mm=N360(134.9634+477198.8676*T+0.008997*T2+T3/69699);
-  const Fm=N360(93.2721+483202.0175*T-0.003682*T2);
-  const A1=N360(119.75+131.849*T);
-  const Dr=D2R(Dm),Mmr=D2R(Mm),Fr=D2R(Fm);
-  const moon=N360(Lm
-    +6.288750*Math.sin(Mmr)+1.274018*Math.sin(2*Dr-Mmr)+0.658309*Math.sin(2*Dr)
-    +0.213616*Math.sin(2*Mmr)-0.185116*Math.sin(Mr)-0.114332*Math.sin(2*Fr)
-    +0.058793*Math.sin(2*Dr-2*Mmr)+0.057212*Math.sin(2*Dr-Mr-Mmr)
-    +0.053320*Math.sin(2*Dr+Mmr)+0.045874*Math.sin(2*Dr-Mr)
-    +0.041024*Math.sin(Mmr-Mr)-0.034718*Math.sin(Dr)-0.030465*Math.sin(Mr+Mmr)
-    +0.015326*Math.sin(2*Dr-2*Fr)-0.012528*Math.sin(Mmr+2*Fr)-0.010980*Math.sin(Mmr-2*Fr)
-    +0.010674*Math.sin(4*Dr-Mmr)+0.010034*Math.sin(3*Mmr)+0.008548*Math.sin(4*Dr-2*Mmr)
-    -0.007910*Math.sin(Mr-Mmr+2*Dr)-0.006783*Math.sin(2*Dr+Mr)+0.005162*Math.sin(Mmr-Dr)
-    +0.003750*Math.sin(D2R(A1)));
-
-  const mMe=D2R(N360(174.7948+149472.5153*T));
-  const mercury=N360(252.2509+149472.6746*T
-    +23.4400*Math.sin(mMe)+2.9818*Math.sin(2*mMe)+0.5255*Math.sin(3*mMe)
-    +0.1058*Math.sin(4*mMe)+0.0219*Math.sin(5*mMe)+0.0047*Math.sin(6*mMe));
-
-  const mV=D2R(N360(50.4161+58517.8039*T));
-  const venus=N360(181.9798+58517.8156*T+0.7758*Math.sin(mV)+0.0033*Math.sin(2*mV));
-
-  const mMa=D2R(N360(19.3730+19139.8585*T));
-  const mars=N360(355.4333+19140.2993*T
-    +10.6912*Math.sin(mMa)+0.6228*Math.sin(2*mMa)+0.0503*Math.sin(3*mMa)+0.0046*Math.sin(4*mMa));
-
-  const mJ=D2R(N360(20.9+3034.906*T));
-  const mS=D2R(N360(317.021+1222.114*T));
-  const jupiter=N360(34.351+3034.906*T+5.5551*Math.sin(mJ)+0.1671*Math.sin(2*mJ)
-    -0.9167*Math.sin(mS-mJ)+0.0466*Math.sin(2*(mS-mJ)));
-  const saturn=N360(50.077+1222.114*T+6.3585*Math.sin(mS)+0.2204*Math.sin(2*mS)
-    +0.9167*Math.sin(mS-mJ)-0.0466*Math.sin(2*(mS-mJ)));
-
-  const mU=D2R(N360(142.590+428.496*T));
-  const uranus=N360(314.055+428.496*T+5.3042*Math.sin(mU)+0.1534*Math.sin(2*mU));
-
-  const mN=D2R(N360(259.142+218.459*T));
-  const neptune=N360(304.349+218.459*T+1.0723*Math.sin(mN));
-
-  const Sp=D2R(N360(50.03+84452.0*T));
-  const Pp=D2R(N360(238.96+144.96*T));
-  const pluto=N360(R2D(Pp)
-    -19.799*Math.sin(2*Pp-Sp)+19.848*Math.cos(2*Pp-Sp)
-    +0.897*Math.sin(4*Pp-2*Sp)-4.956*Math.cos(4*Pp-2*Sp)
-    +0.610*Math.sin(2*Pp)-1.211*Math.cos(2*Pp));
-
-  return{lons:[sun,moon,mercury,venus,mars,jupiter,saturn,uranus,neptune,pluto],eps};
-}
-
-function isRetro(idx,jd){
-  if(idx===0)return false;
-  const a=moshier(jd-1).lons[idx],b=moshier(jd+1).lons[idx];
-  let d=b-a;if(d>180)d-=360;if(d<-180)d+=360;return d<0;
-}
-
-function calcHouses(jd,lat,lng,eps){
-  const T=(jd-2451545.0)/36525;
-  const GMST=N360(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T);
-  const LST=N360(GMST+lng);
-  const epsr=D2R(eps),latr=D2R(lat),LSTr=D2R(LST);
-  const mc=N360(R2D(Math.atan2(Math.tan(LSTr),Math.cos(epsr))));
-  const asc=N360(R2D(Math.atan2(-Math.cos(LSTr),Math.sin(LSTr)*Math.cos(epsr)+Math.tan(latr)*Math.sin(epsr))));
-  function placRA(frac,above){
-    let RA=N360(LST+(above?1:-1)*60);
-    for(let i=0;i<80;i++){
-      const RAr=D2R(RA),decl=Math.asin(Math.sin(epsr)*Math.sin(RAr));
-      const ch=-Math.tan(latr)*Math.tan(decl);
-      if(ch<-1||ch>1)break;
-      const SA=R2D(Math.acos(ch));
-      const H=above?(180-SA)*frac:SA*frac;
-      const newRA=N360(LST+(above?1:-1)*H);
-      if(Math.abs(newRA-RA)<0.0001)break;
-      RA=newRA;
-    }
-    const RAr=D2R(RA),decl=Math.asin(Math.sin(epsr)*Math.sin(RAr));
-    return N360(R2D(Math.atan2(Math.sin(RAr)*Math.cos(epsr)+Math.tan(decl)*Math.sin(epsr),Math.cos(RAr))));
-  }
-  const cusps={};
-  cusps[1]=asc;cusps[10]=mc;
-  cusps[11]=placRA(1/3,true);cusps[12]=placRA(2/3,true);
-  cusps[2]=placRA(2/3,false);cusps[3]=placRA(1/3,false);
-  for(const h of[1,2,3,10,11,12])cusps[h+6]=N360(cusps[h]+180);
-  return{cusps,asc,mc};
-}
-
 /* BUILD CHART */
-window.buildChart=function(){
+window.buildChart=async function(){
   const dateStr=document.getElementById('date-input').value;
   const timeStr=document.getElementById('time-input').value||'12:00';
   const tz=parseFloat(document.getElementById('tz-input').value)||3;
@@ -428,11 +333,31 @@ window.buildChart=function(){
   try{
     const [y,m,d]=dateStr.split('-').map(Number);
     const [h,min]=timeStr.split(':').map(Number);
-    const ut=h+min/60-tz;
-    const jd=julday(y,m,d,ut);
-    const{lons:pLons,eps}=moshier(jd);
-    const lons=pLons.map((lon,i)=>({lon,retro:isRetro(i,jd)}));
-    const{cusps,asc,mc}=calcHouses(jd,lat,lng,eps);
+    const ut=h+min/60-tz; // convert to UT
+
+    const swe=await initSwe();
+    const jd=swe.julday(y,m,d,ut);
+
+    // Planets: SE_SUN=0,SE_MOON=1,SE_MERCURY=2,SE_VENUS=3,SE_MARS=4,SE_JUPITER=5,SE_SATURN=6,SE_URANUS=7,SE_NEPTUNE=8,SE_PLUTO=9
+    const PLANETS=[0,1,2,3,4,5,6,7,8,9];
+    const FLAG=swe.SEFLG_SWIEPH||2; // use Swiss Ephemeris
+
+    const lons=PLANETS.map(p=>{
+      const pos=swe.calc_ut(jd,p,FLAG);
+      // calc_ut returns array: [longitude, latitude, distance, speed_lon, ...]
+      const lon=N360(pos[0]);
+      const retro=pos[3]<0; // negative speed = retrograde
+      return{lon,retro};
+    });
+
+    // Houses (Placidus = 'P')
+    const houses=swe.houses(jd,lat,lng,'P');
+    // houses returns {house:[0,cusp1,...cusp12], ascmc:[asc,mc,...]}
+    const cusps={};
+    for(let i=1;i<=12;i++) cusps[i]=N360(houses.house[i]);
+    const asc=N360(houses.ascmc[0]);
+    const mc=N360(houses.ascmc[1]);
+
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
     const dt=new Date(dateStr+'T12:00:00');
