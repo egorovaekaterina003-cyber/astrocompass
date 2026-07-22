@@ -371,18 +371,47 @@ window.buildChart=async function(){
     let lilitPos={lon:0,retro:false};
     try{const lp=swe.calc_ut(jd,13,FLAG);lilitPos={lon:N360(lp[0]),retro:lp[3]<0};}catch(e){}
 
-    // Houses using our correct JD
-    const hResult=swe.houses(jdHouses,lat,lng,'P');
-    const hcusps=hResult.cusps||{};
-    const ascmc=hResult.ascmc||{};
-    // Library's ARMC (ascmc[2]) should now match our LST
-    const ARMC=ascmc[2]||ascmc['2']||0;
-    const cusps={};
-    for(let i=1;i<=12;i++){
-      cusps[i]=N360(parseFloat(hcusps[String(i)]||hcusps[i]||0));
+    // Calculate houses ourselves (bypass library bug)
+    function myHouses(jd2,lat2,lng2){
+      const T2=(jd2-2451545)/36525;
+      const eps2=23.439291-0.013004*T2;
+      const GMST2=((280.46061837+360.98564736629*(jd2-2451545)+0.000387933*T2*T2)%360+360)%360;
+      const LST2=((GMST2+lng2)%360+360)%360;
+      const epsr2=Math.PI/180*eps2, latr2=Math.PI/180*lat2, LSTr2=Math.PI/180*LST2;
+      // MC with quadrant fix
+      const mcRaw2=180/Math.PI*Math.atan2(Math.tan(LSTr2),Math.cos(epsr2));
+      const mc2=((LST2>90&&LST2<=270)?((mcRaw2+180)%360+360)%360:((mcRaw2%360)+360)%360);
+      // ASC
+      const Y2=-Math.cos(LSTr2);
+      const X2=Math.sin(LSTr2)*Math.cos(epsr2)+Math.tan(latr2)*Math.sin(epsr2);
+      const ascRaw2=180/Math.PI*Math.atan2(Y2,X2);
+      const asc2=((LST2>90&&LST2<=270)?((ascRaw2+180)%360+360)%360:((ascRaw2%360)+360)%360);
+      // Placidus cusps via ARMC
+      function placCusp(frac,above){
+        let RA2=((LST2+(above?1:-1)*60)%360+360)%360;
+        for(let ii=0;ii<80;ii++){
+          const RAr2=Math.PI/180*RA2;
+          const decl2=Math.asin(Math.sin(epsr2)*Math.sin(RAr2));
+          const ch2=-Math.tan(latr2)*Math.tan(decl2);
+          if(ch2<-1||ch2>1)break;
+          const SA2=180/Math.PI*Math.acos(ch2);
+          const H2=above?(180-SA2)*frac:SA2*frac;
+          const newRA2=((LST2+(above?1:-1)*H2)%360+360)%360;
+          if(Math.abs(newRA2-RA2)<0.0001)break;
+          RA2=newRA2;
+        }
+        const RAr2f=Math.PI/180*RA2;
+        const decl2f=Math.asin(Math.sin(epsr2)*Math.sin(RAr2f));
+        return((180/Math.PI*Math.atan2(Math.sin(RAr2f)*Math.cos(epsr2)+Math.tan(decl2f)*Math.sin(epsr2),Math.cos(RAr2f)))%360+360)%360;
+      }
+      const c={};
+      c[1]=asc2;c[10]=mc2;
+      c[11]=placCusp(1/3,true);c[12]=placCusp(2/3,true);
+      c[2]=placCusp(2/3,false);c[3]=placCusp(1/3,false);
+      for(const hh of[1,2,3,10,11,12])c[hh+6]=((c[hh]+180)%360+360)%360;
+      return{cusps:c,asc:asc2,mc:mc2};
     }
-    const asc=N360(parseFloat(ascmc[0]||ascmc['0']||0));
-    const mc=N360(parseFloat(ascmc[1]||ascmc['1']||0));
+    const {cusps,asc,mc}=myHouses(jdHouses,lat,lng);
 
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
