@@ -381,11 +381,15 @@ window.buildChart=async function(){
       // MC with quadrant fix
       const mcRaw2=180/Math.PI*Math.atan2(Math.tan(LSTr2),Math.cos(epsr2));
       const mc2=((LST2>90&&LST2<=270)?((mcRaw2+180)%360+360)%360:((mcRaw2%360)+360)%360);
-      // ASC
+      // ASC - correct formula: atan2(-cos(LST), sin(LST)*cos(eps)+tan(lat)*sin(eps))
+      // Then +180 when LST in (90,270) because atan2 returns value in wrong quadrant
       const Y2=-Math.cos(LSTr2);
       const X2=Math.sin(LSTr2)*Math.cos(epsr2)+Math.tan(latr2)*Math.sin(epsr2);
       const ascRaw2=180/Math.PI*Math.atan2(Y2,X2);
-      const asc2=((LST2>90&&LST2<=270)?((ascRaw2+180)%360+360)%360:((ascRaw2%360)+360)%360);
+      // ascRaw2 is always 180° off from correct when LST in (90,270)
+      // But also need to handle the case when raw value itself needs normalizing first
+      let asc2=((ascRaw2%360)+360)%360;
+      if(LST2>90&&LST2<=270) asc2=((asc2+180)%360+360)%360;
       // Placidus cusps via ARMC
       function placCusp(frac,above){
         let RA2=((LST2+(above?1:-1)*60)%360+360)%360;
