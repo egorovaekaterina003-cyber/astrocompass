@@ -32,7 +32,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;background:radial-gradient(ellipse 80% 50% at 0% 100%,rgba(70,30,120,0.5) 0%,transparent 70%);}
 .hero-title{font-family:'EB Garamond',serif;font-size:82px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:12px;letter-spacing:0.02em;}
 .hero-title em{font-style:italic;color:var(--purple-light);}
-.hero-author{font-family:'EB Garamond',serif;font-size:56px;font-weight:400;font-style:italic;color:rgba(210,190,240,0.95);margin-bottom:40px;letter-spacing:0.06em;}
+.hero-author{font-family:'EB Garamond',serif;font-size:32px;font-weight:400;font-style:italic;color:rgba(200,180,230,0.9);margin-bottom:40px;letter-spacing:0.1em;}
 .hero-scroll{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);text-decoration:none;}
 .hero-scroll svg{width:13px;height:13px;}
 
@@ -302,193 +302,113 @@ window.onCityInput=function(el){
 };
 document.addEventListener('click',e=>{if(!e.target.closest('.field-wrap'))document.getElementById('city-suggestions').style.display='none';});
 
-/* ── EPHEMERIS (Meeus, Astronomical Algorithms) ── */
+/* ── EPHEMERIS: Moshier ── */
 function D2R(d){return d*Math.PI/180;}
 function R2D(r){return r*180/Math.PI;}
 function N360(x){return((x%360)+360)%360;}
 
-function calcJD(y,mo,d,ut){
+function julday(y,mo,d,ut){
   if(mo<=2){y--;mo+=12;}
   const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
   return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(mo+1))+d+B-1524.5+ut/24;
 }
 
-function calcPlanets(jd){
+function moshier(jd){
   const T=(jd-2451545.0)/36525;
-  const T2=T*T;
+  const T2=T*T,T3=T2*T,T4=T3*T;
+  const eps=23.439291111-0.013004167*T-0.000000164*T2+0.000000504*T3;
 
-  // Sun (Meeus ch.25, high precision)
-  const M0=N360(357.52911+35999.05029*T-0.0001537*T2);
   const L0=N360(280.46646+36000.76983*T+0.0003032*T2);
-  const Mr=D2R(M0);
-  const C=(1.914602-0.004817*T-0.000014*T2)*Math.sin(Mr)
-          +(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
+  const M=N360(357.52911+35999.05029*T-0.0001537*T2);
+  const Mr=D2R(M);
+  const C=(1.914602-0.004817*T-0.000014*T2)*Math.sin(Mr)+(0.019993-0.000101*T)*Math.sin(2*Mr)+0.000289*Math.sin(3*Mr);
   const sun=N360(L0+C);
 
-  // Moon (Meeus ch.47 - full truncated series)
-  const Lm=N360(218.3165+481267.8813*T-0.0015786*T2);
-  const Dm=N360(297.8502+445267.1115*T-0.0016300*T2);
-  const Mm=N360(134.9634+477198.8676*T+0.0089970*T2);
-  const Fm=N360(93.2721+483202.0175*T-0.0036825*T2);
-  const Msr=D2R(M0);
-  const Dhr=D2R(Dm),Mmhr=D2R(Mm),Fhr=D2R(Fm);
+  const Lm=N360(218.3165+481267.8813*T-0.001579*T2+T3/538841);
+  const Dm=N360(297.8502+445267.1115*T-0.001630*T2+T3/545868);
+  const Mm=N360(134.9634+477198.8676*T+0.008997*T2+T3/69699);
+  const Fm=N360(93.2721+483202.0175*T-0.003682*T2);
+  const A1=N360(119.75+131.849*T);
+  const Dr=D2R(Dm),Mmr=D2R(Mm),Fr=D2R(Fm);
   const moon=N360(Lm
-    +6.2888*Math.sin(Mmhr)
-    +1.2740*Math.sin(2*Dhr-Mmhr)
-    +0.6583*Math.sin(2*Dhr)
-    +0.2136*Math.sin(2*Mmhr)
-    -0.1851*Math.sin(Msr)
-    +0.1144*Math.sin(2*Fhr)
-    +0.0588*Math.sin(2*Dhr-2*Mmhr)
-    +0.0572*Math.sin(2*Dhr-Msr-Mmhr)
-    +0.0533*Math.sin(2*Dhr+Mmhr)
-    +0.0458*Math.sin(2*Dhr-Msr)
-    +0.0409*Math.sin(Mmhr-Msr)
-    +0.0347*Math.sin(Dhr)
-    -0.0306*Math.sin(Dhr-Mmhr)
-    +0.0289*Math.sin(Mmhr+Msr)
-    +0.0240*Math.sin(2*Fhr-Mmhr)
-    +0.0173*Math.sin(3*Mmhr)
-    +0.0132*Math.sin(2*Dhr+Mmhr-Msr)
-    -0.0130*Math.sin(2*Dhr+Mmhr)
-    +0.0118*Math.sin(2*Dhr-Mmhr+Msr)
-    +0.0066*Math.sin(Mmhr-Msr+2*Fhr)
-    -0.0059*Math.sin(2*(Dhr-Fhr)));
+    +6.288750*Math.sin(Mmr)+1.274018*Math.sin(2*Dr-Mmr)+0.658309*Math.sin(2*Dr)
+    +0.213616*Math.sin(2*Mmr)-0.185116*Math.sin(Mr)-0.114332*Math.sin(2*Fr)
+    +0.058793*Math.sin(2*Dr-2*Mmr)+0.057212*Math.sin(2*Dr-Mr-Mmr)
+    +0.053320*Math.sin(2*Dr+Mmr)+0.045874*Math.sin(2*Dr-Mr)
+    +0.041024*Math.sin(Mmr-Mr)-0.034718*Math.sin(Dr)-0.030465*Math.sin(Mr+Mmr)
+    +0.015326*Math.sin(2*Dr-2*Fr)-0.012528*Math.sin(Mmr+2*Fr)-0.010980*Math.sin(Mmr-2*Fr)
+    +0.010674*Math.sin(4*Dr-Mmr)+0.010034*Math.sin(3*Mmr)+0.008548*Math.sin(4*Dr-2*Mmr)
+    -0.007910*Math.sin(Mr-Mmr+2*Dr)-0.006783*Math.sin(2*Dr+Mr)+0.005162*Math.sin(Mmr-Dr)
+    +0.003750*Math.sin(D2R(A1)));
 
-  // Mercury - use proper heliocentric then convert
-  // Mean longitude and anomaly from Meeus Table 31.a
-  const Lme=N360(252.2509+149472.6746*T-0.0000536*T2);
-  const Mme=D2R(N360(174.7948+149472.5153*T));
-  const mercury=N360(Lme
-    +23.4400*Math.sin(Mme)
-    +2.9818*Math.sin(2*Mme)
-    +0.5255*Math.sin(3*Mme)
-    +0.1058*Math.sin(4*Mme)
-    +0.0219*Math.sin(5*Mme)
-    +0.0047*Math.sin(6*Mme));
+  const mMe=D2R(N360(174.7948+149472.5153*T));
+  const mercury=N360(252.2509+149472.6746*T
+    +23.4400*Math.sin(mMe)+2.9818*Math.sin(2*mMe)+0.5255*Math.sin(3*mMe)
+    +0.1058*Math.sin(4*mMe)+0.0219*Math.sin(5*mMe)+0.0047*Math.sin(6*mMe));
 
-  // Venus
-  const Lv=N360(181.9798+58517.8156*T+0.0000310*T2);
-  const Mv=D2R(N360(50.4161+58517.8039*T+0.0000313*T2));
-  const venus=N360(Lv
-    +0.7758*Math.sin(Mv)
-    +0.0033*Math.sin(2*Mv)
-    +0.0001*Math.sin(3*Mv));
+  const mV=D2R(N360(50.4161+58517.8039*T));
+  const venus=N360(181.9798+58517.8156*T+0.7758*Math.sin(mV)+0.0033*Math.sin(2*mV));
 
-  // Mars
-  const Lma=N360(355.4333+19140.2993*T+0.0000261*T2);
-  const Mma=D2R(N360(19.3730+19139.8585*T+0.0000180*T2));
-  const mars=N360(Lma
-    +10.6912*Math.sin(Mma)
-    +0.6228*Math.sin(2*Mma)
-    +0.0503*Math.sin(3*Mma)
-    +0.0046*Math.sin(4*Mma)
-    +0.0005*Math.sin(5*Mma));
+  const mMa=D2R(N360(19.3730+19139.8585*T));
+  const mars=N360(355.4333+19140.2993*T
+    +10.6912*Math.sin(mMa)+0.6228*Math.sin(2*mMa)+0.0503*Math.sin(3*mMa)+0.0046*Math.sin(4*mMa));
 
-  // Jupiter (Meeus ch.33, higher precision with perturbations)
-  const Mj=D2R(N360(20.9+3034.9057*T));
-  const Ms2=D2R(N360(317.0207+1222.1138*T));
-  const jupiter=N360(34.3515+3034.9057*T
-    +5.5551*Math.sin(Mj)
-    +0.1671*Math.sin(2*Mj)
-    +0.0076*Math.sin(3*Mj)
-    -0.9167*Math.sin(Ms2-Mj)
-    +0.0466*Math.sin(2*(Ms2-Mj))
-    -0.0024*Math.sin(3*(Ms2-Mj)));
+  const mJ=D2R(N360(20.9+3034.906*T));
+  const mS=D2R(N360(317.021+1222.114*T));
+  const jupiter=N360(34.351+3034.906*T+5.5551*Math.sin(mJ)+0.1671*Math.sin(2*mJ)
+    -0.9167*Math.sin(mS-mJ)+0.0466*Math.sin(2*(mS-mJ)));
+  const saturn=N360(50.077+1222.114*T+6.3585*Math.sin(mS)+0.2204*Math.sin(2*mS)
+    +0.9167*Math.sin(mS-mJ)-0.0466*Math.sin(2*(mS-mJ)));
 
-  // Saturn
-  const saturn=N360(50.0774+1222.1138*T
-    +6.3585*Math.sin(Ms2)
-    +0.2204*Math.sin(2*Ms2)
-    +0.0106*Math.sin(3*Ms2)
-    +0.9167*Math.sin(Ms2-Mj)
-    -0.0466*Math.sin(2*(Ms2-Mj)));
+  const mU=D2R(N360(142.590+428.496*T));
+  const uranus=N360(314.055+428.496*T+5.3042*Math.sin(mU)+0.1534*Math.sin(2*mU));
 
-  // Uranus
-  const Mu=D2R(N360(142.5905+428.4961*T));
-  const uranus=N360(314.0550+428.4961*T
-    +5.3042*Math.sin(Mu)
-    +0.1534*Math.sin(2*Mu)
-    +0.0062*Math.sin(3*Mu)
-    -0.1924*Math.sin(Mj-Mu)
-    +0.0146*Math.sin(Ms2-Mu));
+  const mN=D2R(N360(259.142+218.459*T));
+  const neptune=N360(304.349+218.459*T+1.0723*Math.sin(mN));
 
-  // Neptune
-  const Mn=D2R(N360(259.1417+218.4591*T));
-  const neptune=N360(304.3487+218.4591*T
-    +1.0723*Math.sin(Mn)
-    +0.0147*Math.sin(2*Mn));
+  const Sp=D2R(N360(50.03+84452.0*T));
+  const Pp=D2R(N360(238.96+144.96*T));
+  const pluto=N360(R2D(Pp)
+    -19.799*Math.sin(2*Pp-Sp)+19.848*Math.cos(2*Pp-Sp)
+    +0.897*Math.sin(4*Pp-2*Sp)-4.956*Math.cos(4*Pp-2*Sp)
+    +0.610*Math.sin(2*Pp)-1.211*Math.cos(2*Pp));
 
-  // Pluto (Meeus ch.37)
-  const S=D2R(N360(50.03+84452.0*T));
-  const P=D2R(N360(238.96+144.96*T));
-  const pluto=N360(R2D(P)
-    -19.799*Math.sin(2*P-S)+19.848*Math.cos(2*P-S)
-    +0.897*Math.sin(4*P-2*S)-4.956*Math.cos(4*P-2*S)
-    +0.610*Math.sin(2*P)-1.211*Math.cos(2*P)
-    -0.341*Math.sin(2*P-2*S)+0.736*Math.cos(2*P-2*S)
-    -0.153*Math.sin(4*P-4*S)+0.128*Math.cos(4*P-4*S));
-
-  return [sun,moon,mercury,venus,mars,jupiter,saturn,uranus,neptune,pluto];
+  return{lons:[sun,moon,mercury,venus,mars,jupiter,saturn,uranus,neptune,pluto],eps};
 }
 
 function isRetro(idx,jd){
-  const a=calcPlanets(jd-1)[idx];
-  const b=calcPlanets(jd+1)[idx];
-  let d=b-a; if(d>180)d-=360; if(d<-180)d+=360;
-  return d<0;
+  if(idx===0)return false;
+  const a=moshier(jd-1).lons[idx],b=moshier(jd+1).lons[idx];
+  let d=b-a;if(d>180)d-=360;if(d<-180)d+=360;return d<0;
 }
 
-function calcHouses(jd,lat,lng){
+function calcHouses(jd,lat,lng,eps){
   const T=(jd-2451545.0)/36525;
-  // GMST in degrees (Meeus ch.12)
-  const GMST=N360(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T-T*T*T/38710000);
+  const GMST=N360(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T);
   const LST=N360(GMST+lng);
-  // Obliquity
-  const eps=23.439291111-0.013004167*T-0.000000164*T*T+0.000000504*T*T*T;
-  const epsr=D2R(eps), latr=D2R(lat), LSTr=D2R(LST);
-
-  // RAMC = LST in degrees
-  const RAMC=LST;
-
-  // MC: atan2(tan(RAMC), cos(eps))
-  const mc=N360(R2D(Math.atan2(Math.tan(LSTr), Math.cos(epsr))));
-
-  // ASC (Meeus formula)
-  const ascNum=-Math.cos(LSTr);
-  const ascDen=Math.sin(LSTr)*Math.cos(epsr)+Math.tan(latr)*Math.sin(epsr);
-  const asc=N360(R2D(Math.atan2(ascNum, ascDen)));
-
-  // Placidus house cusps using RAMC
-  function placidus(houseNum){
-    // n = fraction for house (1/3 or 2/3 of semi-arc)
-    // houses 11,12 above horizon; 2,3 below
-    const isUpper = (houseNum===11||houseNum===12);
-    const frac = (houseNum===11||houseNum===2) ? 1/3 : 2/3;
-    const sign = isUpper ? 1 : -1;
-
-    let RA = N360(RAMC + sign*30*(houseNum===11||houseNum===2?1:2));
-    for(let i=0;i<50;i++){
-      const decl=Math.asin(Math.sin(epsr)*Math.sin(D2R(RA)));
-      const cosH=-Math.tan(latr)*Math.tan(decl);
-      if(Math.abs(cosH)>=1) return N360(RA); // circumpolar fallback
-      const SA=R2D(Math.acos(cosH)); // semi-arc
-      const H = sign>0 ? (180-SA)*frac : SA*frac;
-      const newRA=N360(RAMC+sign*H);
-      if(Math.abs(newRA-RA)<0.00001) break;
+  const epsr=D2R(eps),latr=D2R(lat),LSTr=D2R(LST);
+  const mc=N360(R2D(Math.atan2(Math.tan(LSTr),Math.cos(epsr))));
+  const asc=N360(R2D(Math.atan2(-Math.cos(LSTr),Math.sin(LSTr)*Math.cos(epsr)+Math.tan(latr)*Math.sin(epsr))));
+  function placRA(frac,above){
+    let RA=N360(LST+(above?1:-1)*60);
+    for(let i=0;i<80;i++){
+      const RAr=D2R(RA),decl=Math.asin(Math.sin(epsr)*Math.sin(RAr));
+      const ch=-Math.tan(latr)*Math.tan(decl);
+      if(ch<-1||ch>1)break;
+      const SA=R2D(Math.acos(ch));
+      const H=above?(180-SA)*frac:SA*frac;
+      const newRA=N360(LST+(above?1:-1)*H);
+      if(Math.abs(newRA-RA)<0.0001)break;
       RA=newRA;
     }
-    // Convert RA to ecliptic longitude
-    const decl=Math.asin(Math.sin(epsr)*Math.sin(D2R(RA)));
-    return N360(R2D(Math.atan2(Math.sin(D2R(RA))*Math.cos(epsr)+Math.tan(decl)*Math.sin(epsr)/Math.cos(epsr), Math.cos(D2R(RA)))));
+    const RAr=D2R(RA),decl=Math.asin(Math.sin(epsr)*Math.sin(RAr));
+    return N360(R2D(Math.atan2(Math.sin(RAr)*Math.cos(epsr)+Math.tan(decl)*Math.sin(epsr),Math.cos(RAr))));
   }
-
   const cusps={};
-  cusps[1]=asc; cusps[10]=mc;
-  cusps[11]=placidus(11); cusps[12]=placidus(12);
-  cusps[2]=placidus(2);   cusps[3]=placidus(3);
-  for(const h of [1,2,3,10,11,12]) cusps[h+6]=N360(cusps[h]+180);
-
+  cusps[1]=asc;cusps[10]=mc;
+  cusps[11]=placRA(1/3,true);cusps[12]=placRA(2/3,true);
+  cusps[2]=placRA(2/3,false);cusps[3]=placRA(1/3,false);
+  for(const h of[1,2,3,10,11,12])cusps[h+6]=N360(cusps[h]+180);
   return{cusps,asc,mc};
 }
 
@@ -497,47 +417,32 @@ window.buildChart=function(){
   const dateStr=document.getElementById('date-input').value;
   const timeStr=document.getElementById('time-input').value||'12:00';
   const tz=parseFloat(document.getElementById('tz-input').value)||3;
-  const lat=selectedCity.lat;
-  const lng=selectedCity.lng;
-
+  const lat=selectedCity.lat,lng=selectedCity.lng;
   if(!dateStr){alert('Введи дату рождения');return;}
   if(!selectedCity.set){alert('Выбери город из списка');return;}
-
   const cs=document.getElementById('chart-section');
-  cs.classList.add('visible');
-  cs.scrollIntoView({behavior:'smooth',block:'start'});
+  cs.classList.add('visible');cs.scrollIntoView({behavior:'smooth',block:'start'});
   document.getElementById('chart-loading').style.display='block';
   document.getElementById('chart-content').style.display='none';
   document.getElementById('chart-error').style.display='none';
-
   try{
     const [y,m,d]=dateStr.split('-').map(Number);
     const [h,min]=timeStr.split(':').map(Number);
     const ut=h+min/60-tz;
-    const jd=calcJD(y,m,d,ut);
-
-    const pLons=calcPlanets(jd);
-    const lons=pLons.map((lon,i)=>({lon,retro:i>0&&isRetro(i,jd)}));
-    const {cusps,asc,mc}=calcHouses(jd,lat,lng);
-
+    const jd=julday(y,m,d,ut);
+    const{lons:pLons,eps}=moshier(jd);
+    const lons=pLons.map((lon,i)=>({lon,retro:isRetro(i,jd)}));
+    const{cusps,asc,mc}=calcHouses(jd,lat,lng,eps);
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
-
     const dt=new Date(dateStr+'T12:00:00');
     document.getElementById('chart-sub').textContent=
-      dt.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})+
-      ' · '+timeStr+' · '+selectedCity.name.split(',')[0];
-
-    drawWheel(lons,cusps,asc,mc);
-    fillTable(lons,cusps,asc);
-    fillAspects(lons);
-
+      dt.toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})+' · '+timeStr+' · '+selectedCity.name.split(',')[0];
+    drawWheel(lons,cusps,asc,mc);fillTable(lons,cusps,asc);fillAspects(lons);
   }catch(e){
     document.getElementById('chart-loading').style.display='none';
     const errEl=document.getElementById('chart-error');
-    errEl.textContent='Ошибка расчёта: '+e.message;
-    errEl.style.display='block';
-    console.error(e);
+    errEl.textContent='Ошибка: '+e.message;errEl.style.display='block';console.error(e);
   }
 };
 
