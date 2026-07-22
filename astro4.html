@@ -369,20 +369,21 @@ window.buildChart=async function(){
     const hResult=swe.houses(jd,lat,lng,'P');
     const hcusps=hResult.cusps||{};
     const ascmc=hResult.ascmc||{};
-    // ARMC (sidereal time in degrees) is ascmc[2]
-    const ARMC=ascmc[2]||0;
-    // Quadrant fix: when ARMC (=LST) is in [90,270], ASC needs +180
+    const ARMC=ascmc[2]||ascmc['2']||0;
+    console.log('ARMC=',ARMC,'cusps=',JSON.stringify(hcusps),'ascmc=',JSON.stringify(ascmc));
+    // ASC from library
+    const ascRaw=ascmc[0]||ascmc['0']||0;
+    const mcRaw=ascmc[1]||ascmc['1']||0;
+    // Quadrant fix: when ARMC in [90,270], raw values are 180° off
     const needsFix=(ARMC>90&&ARMC<270);
     const cusps={};
     for(let i=1;i<=12;i++){
-      const raw=hcusps[String(i)]||hcusps[i]||0;
+      const raw=parseFloat(hcusps[String(i)]||hcusps[i]||0);
       cusps[i]=N360(needsFix?raw+180:raw);
     }
-    const ascRaw=ascmc[0]||ascmc['0']||0;
-    const mcRaw=ascmc[1]||ascmc['1']||0;
     const asc=N360(needsFix?ascRaw+180:ascRaw);
-    // MC quadrant: add 180 if ARMC > 180
     const mc=N360(ARMC>180?mcRaw+180:mcRaw);
+    console.log('ASC=',asc,'MC=',mc,'cusp1=',cusps[1],'cusp10=',cusps[10]);
 
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
