@@ -361,14 +361,18 @@ window.buildChart=async function(){
 
     // Houses (Placidus = 'P')
     const houses=swe.houses(jd,lat,lng,'P');
-    console.log('houses result:', JSON.stringify(houses));
+    // Log full structure to understand API
+    console.log('houses keys:', Object.keys(houses));
+    console.log('houses.house:', JSON.stringify(houses.house));
+    console.log('houses.ascmc:', JSON.stringify(houses.ascmc));
+    console.log('houses[0]:', houses[0]);
+    console.log('houses[1]:', houses[1]);
     const cusps={};
-    // Try different API shapes
-    const houseArr = houses.house || houses.cusps || houses;
-    const ascmc = houses.ascmc || houses;
-    for(let i=1;i<=12;i++) cusps[i]=N360(Array.isArray(houseArr)?houseArr[i]:(houseArr[i]||0));
-    const asc=N360(Array.isArray(ascmc)?ascmc[0]:(ascmc.asc||ascmc.ascendant||0));
-    const mc=N360(Array.isArray(ascmc)?ascmc[1]:(ascmc.mc||ascmc.midheaven||0));
+    const houseArr = houses.house || houses.cusps || (Array.isArray(houses)?houses:[]);
+    const ascmc = houses.ascmc || [];
+    for(let i=1;i<=12;i++) cusps[i]=N360(houseArr[i]||0);
+    const asc=N360(ascmc[0]||0);
+    const mc=N360(ascmc[1]||0);
 
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
