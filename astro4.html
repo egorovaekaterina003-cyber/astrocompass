@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Astro Compass — Анастасия Золотаревская</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Raleway:wght@200;300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Raleway:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -30,7 +30,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .hero-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 50% 65% at 72% 42%,transparent 40%,rgba(8,3,20,0.5) 65%,rgba(8,3,20,0.95) 80%,rgba(8,3,20,1) 100%);}
 .hero-overlay::after{content:'';position:absolute;inset:0;background:linear-gradient(to left,transparent 40%,rgba(8,3,20,0.6) 70%,rgba(8,3,20,0.99) 88%),linear-gradient(to bottom,rgba(8,3,20,0.3) 0%,transparent 15%,transparent 55%,rgba(60,10,100,0.4) 75%,rgba(80,20,130,0.7) 88%,rgba(50,5,90,0.9) 100%);}
 .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;background:radial-gradient(ellipse 80% 50% at 0% 100%,rgba(70,30,120,0.5) 0%,transparent 70%);}
-.hero-title{font-family:'EB Garamond',serif;font-size:82px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:12px;letter-spacing:0.02em;}
+.hero-title{font-family:'EB Garamond',serif;font-size:96px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:16px;letter-spacing:0.02em;}
 .hero-title em{font-style:italic;color:var(--purple-light);}
 .hero-author{font-family:'EB Garamond',serif;font-size:32px;font-weight:400;font-style:italic;color:rgba(200,180,230,0.9);margin-bottom:40px;letter-spacing:0.1em;}
 .hero-scroll{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);text-decoration:none;}
@@ -200,7 +200,7 @@ footer a{color:var(--purple-light);text-decoration:none;}
 
 <footer><p>© 2026 Astro Compass · Анастасия Золотаревская<br><a href="mailto:astrocompass@mail.ru">astrocompass@mail.ru</a></p></footer>
 
-<script type="module">
+<script>
 const ASTRO_API_KEY = '1t8Q3ldCZR5cjWAdOVdaa94mhovIL1gU6fB7Y1cr';
 
 /* STARS */
@@ -308,8 +308,17 @@ let _sweReady = false;
 
 async function initSwe(){
   if(_sweReady) return _swe;
-  const {default: SwissEph} = await import('https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js');
-  _swe = new SwissEph();
+  // Load SwissEph via script tag injection
+  await new Promise((resolve,reject)=>{
+    if(window.SwissEph){resolve();return;}
+    const s=document.createElement('script');
+    s.type='module';
+    s.textContent=`import SwissEph from 'https://cdn.jsdelivr.net/gh/prolaxu/swisseph-wasm@main/src/swisseph.js';window.SwissEph=SwissEph;window._sweLoaded&&window._sweLoaded();`;
+    window._sweLoaded=resolve;
+    document.head.appendChild(s);
+    setTimeout(reject,15000);
+  });
+  _swe = new window.SwissEph();
   await _swe.initSwissEph();
   _sweReady = true;
   return _swe;
@@ -352,11 +361,14 @@ window.buildChart=async function(){
 
     // Houses (Placidus = 'P')
     const houses=swe.houses(jd,lat,lng,'P');
-    // houses returns {house:[0,cusp1,...cusp12], ascmc:[asc,mc,...]}
+    console.log('houses result:', JSON.stringify(houses));
     const cusps={};
-    for(let i=1;i<=12;i++) cusps[i]=N360(houses.house[i]);
-    const asc=N360(houses.ascmc[0]);
-    const mc=N360(houses.ascmc[1]);
+    // Try different API shapes
+    const houseArr = houses.house || houses.cusps || houses;
+    const ascmc = houses.ascmc || houses;
+    for(let i=1;i<=12;i++) cusps[i]=N360(Array.isArray(houseArr)?houseArr[i]:(houseArr[i]||0));
+    const asc=N360(Array.isArray(ascmc)?ascmc[0]:(ascmc.asc||ascmc.ascendant||0));
+    const mc=N360(Array.isArray(ascmc)?ascmc[1]:(ascmc.mc||ascmc.midheaven||0));
 
     document.getElementById('chart-loading').style.display='none';
     document.getElementById('chart-content').style.display='block';
