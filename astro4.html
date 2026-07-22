@@ -25,14 +25,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 /* HERO */
 .hero{position:relative;min-height:100svh;display:flex;flex-direction:column;overflow:hidden;}
 .hero-photo{position:absolute;inset:0;z-index:0;}
-.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:70% 8%;display:block;}
 .hero-overlay{position:absolute;inset:0;z-index:1;}
-.hero-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 40%,transparent 30%,rgba(8,3,20,0.7) 60%,rgba(8,3,20,0.97) 80%,rgba(8,3,20,1) 100%);}
-.hero-overlay::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,3,20,0.2) 0%,transparent 30%,transparent 50%,rgba(8,3,20,0.95) 80%,rgba(8,3,20,1) 100%);}
+.hero-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 70% at 68% 45%,transparent 35%,rgba(20,5,40,0.65) 60%,rgba(8,3,20,0.97) 82%,rgba(8,3,20,1) 100%);}
+.hero-overlay::after{content:'';position:absolute;inset:0;background:linear-gradient(to left,transparent 30%,rgba(50,10,80,0.4) 60%,rgba(8,3,20,0.98) 85%),linear-gradient(to bottom,rgba(20,5,40,0.15) 0%,transparent 20%,transparent 60%,rgba(8,3,20,0.9) 80%,rgba(8,3,20,1) 100%);}
 .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;background:radial-gradient(ellipse 80% 50% at 0% 100%,rgba(70,30,120,0.5) 0%,transparent 70%);}
 .hero-title{font-family:'EB Garamond',serif;font-size:82px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:12px;letter-spacing:0.02em;}
 .hero-title em{font-style:italic;color:var(--purple-light);}
-.hero-author{font-family:'EB Garamond',serif;font-size:32px;font-weight:400;font-style:italic;color:rgba(200,180,230,0.9);margin-bottom:40px;letter-spacing:0.1em;}
+.hero-author{font-family:'EB Garamond',serif;font-size:42px;font-weight:400;font-style:italic;color:rgba(210,190,240,0.95);margin-bottom:40px;letter-spacing:0.08em;}
 .hero-scroll{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);text-decoration:none;}
 .hero-scroll svg{width:13px;height:13px;}
 
@@ -332,11 +332,8 @@ window.buildChart=async function(){
       config:{observation_point:'topocentric',ayanamsha:'tropical'}
     };
 
-    const resp=await fetch('https://script.google.com/macros/s/AKfycbyahwJFhFibhFUNw9PntuGFT0Zq3oLdVlX4NjMdusd2_O925cXJHWGefZB1Ds04npup/exec',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
+    const scriptUrl='https://script.google.com/macros/s/AKfycbytH260So0NtaV_7CleEWjonXRcX1GNbocrcwU9qBPMOp4S3A2Zx9KfCvS2qkwQ8zWE/exec';
+    const resp=await fetch(scriptUrl+'?data='+encodeURIComponent(JSON.stringify(payload)));
 
     if(!resp.ok)throw new Error('Ошибка API: '+resp.status);
     const data=await resp.json();
