@@ -32,7 +32,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:flex-end;min-height:100svh;padding:32px 24px 52px;background:radial-gradient(ellipse 80% 50% at 0% 100%,rgba(70,30,120,0.5) 0%,transparent 70%);}
 .hero-title{font-family:'EB Garamond',serif;font-size:82px;font-weight:800;line-height:0.9;color:#fff;margin-bottom:12px;letter-spacing:0.02em;}
 .hero-title em{font-style:italic;color:var(--purple-light);}
-.hero-author{font-family:'EB Garamond',serif;font-size:26px;font-weight:300;font-style:italic;color:rgba(200,180,230,0.85);margin-bottom:40px;letter-spacing:0.15em;}
+.hero-author{font-family:'EB Garamond',serif;font-size:32px;font-weight:400;font-style:italic;color:rgba(200,180,230,0.9);margin-bottom:40px;letter-spacing:0.1em;}
 .hero-scroll{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);text-decoration:none;}
 .hero-scroll svg{width:13px;height:13px;}
 
@@ -332,9 +332,9 @@ window.buildChart=async function(){
       config:{observation_point:'topocentric',ayanamsha:'tropical'}
     };
 
-    const resp=await fetch('https://json.freeastrologyapi.com/western-chart-data',{
+    const resp=await fetch('https://script.google.com/macros/s/AKfycbyahwJFhFibhFUNw9PntuGFT0Zq3oLdVlX4NjMdusd2_O925cXJHWGefZB1Ds04npup/exec',{
       method:'POST',
-      headers:{'Content-Type':'text/plain','x-api-key':ASTRO_API_KEY},
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
 
